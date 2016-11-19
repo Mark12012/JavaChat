@@ -21,10 +21,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-/**
- * @author 2016 GRZEGORZ PRZYTU£A ALL RIGHTS RESERVED 
- * - StartUp application for chat room client
- */
+
 @SuppressWarnings("serial")
 public class StartUpWindow extends JFrame
 {
@@ -181,9 +178,6 @@ public class StartUpWindow extends JFrame
 		try
 		{
 			new Thread(new ClientThread(clientIdTextField.getText(),InetAddress.getByName(serverIpTextField.getText()))).start();
-//			ChatClient clientApp = new ChatClient(clientIdTextField.getText(),InetAddress.getByName(serverIpTextField.getText()));
-//			clientApp.setVisible(true);
-//			clientApp.startNetworking();
 		}
 		catch (UnknownHostException e)
 		{

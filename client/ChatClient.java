@@ -1,21 +1,18 @@
 package client;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.InetAddress;
-import java.net.Socket;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -23,8 +20,9 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -32,17 +30,7 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.DefaultCaret;
-import javax.swing.JPopupMenu;
-import java.awt.Component;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
-/**
- * @author 2016 GRZEGORZ PRZYTU£A ALL RIGHTS RESERVED 
- * - Swing application for chat room client
- */
 @SuppressWarnings("serial")
 public class ChatClient extends JFrame
 {
@@ -53,6 +41,8 @@ public class ChatClient extends JFrame
 	/** Swing variables */
 	private DefaultListModel<String> listModel;
 	private JTabbedPane tabbedPane;
+	public JPopupMenu popup;
+	JList<String> listOfUsers;
 	
 	/** Tab handlers */
 	private Map<Integer,JTextArea> handlers;
@@ -82,18 +72,19 @@ public class ChatClient extends JFrame
 		setBounds(100, 100, 645, 343);
 		
 		JPanel contentPane = new JPanel();
-		contentPane.setBackground(Color.WHITE);
+		contentPane.setBackground(SystemColor.control);
 		contentPane.setLayout(new BorderLayout());
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setBackground(SystemColor.control);
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
 		
 		listModel = new DefaultListModel<>();
 		
-		JList<String> listOfUsers = new JList<>(listModel);
-		listOfUsers.setBackground(SystemColor.inactiveCaptionBorder);
+		listOfUsers = new JList<>(listModel);
+		listOfUsers.setBackground(SystemColor.control);
 		listOfUsers.setBounds(422, 10, 197, 283);
 		
 		JScrollPane listScrollPane = new JScrollPane(listOfUsers);
@@ -101,8 +92,54 @@ public class ChatClient extends JFrame
 		listScrollPane.setBorder(BorderFactory.createTitledBorder("Users online"));
 		listScrollPane.setPreferredSize(new Dimension(200,0));
 		contentPane.add(listScrollPane, BorderLayout.EAST);	
+		
+		/** POPUP */
+	    popup = new JPopupMenu();
+	    String[] names = new String[2];
+	    ActionListener menuListener = new ActionListener() {
+	      public void actionPerformed(ActionEvent event) {
+	    	  if(names[0] == null)
+	    		  names[0] = listOfUsers.getSelectedValue();
+	    	  else
+	    		  if(names[1] == null)
+	    		  {
+		    		  names[1] = listOfUsers.getSelectedValue();
+		    		  client.addToChatroom(names[0], names[1]);
+	    		  }
+	        
+	      }
+	    };
+	    JMenuItem item;
+	    popup.add(item = new JMenuItem("Create chatroom"));
+	    item.setHorizontalTextPosition(JMenuItem.RIGHT);
+	    item.addActionListener(menuListener);
+	    
+	    listOfUsers.addMouseListener(new MousePopupListener());
 	}
 	
+	
+	class MousePopupListener extends MouseAdapter {
+		public void mousePressed(MouseEvent e) {
+	      checkPopup(e);
+	    }
+
+	    public void mouseClicked(MouseEvent e) {
+	      checkPopup(e);
+	    }
+
+	    public void mouseReleased(MouseEvent e) {
+	      checkPopup(e);
+	    }
+
+	    private void checkPopup(MouseEvent e) {
+	      if (e.isPopupTrigger()) {
+	    	listOfUsers.setSelectedIndex(listOfUsers.locationToIndex(e.getPoint()));
+	    	if(listOfUsers.getSelectedIndex() != -1)
+	    		popup.show(e.getComponent(), e.getX(), e.getY());
+	      }
+	    }
+	  }
+
 	
 	public JPanel getChatPanelForTab()
 	{
@@ -129,7 +166,8 @@ public class ChatClient extends JFrame
 		sendBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				String ms = outputTextField.getText();
-				client.sendMessageToServer(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()), ms);
+				AES aes = new AES();
+				client.sendMessageToServer(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()), aes.encrypt(ms));
 				chatArea.append("[" + clientName + "]" +" : " 
 						+ ms + "\n" );
 				outputTextField.setText("");
@@ -148,12 +186,7 @@ public class ChatClient extends JFrame
 	
 	public void showMessage(String from, String message)
 	{
-		JTextArea text = handlers.get(tabbedPane.indexOfTab(from));
-		System.out.println(from);
-		System.out.println(message);
-		text.append("[" + from + "]" + " : " + message + "\n");
-//		frameHandler.getHandlers().get(frameHandler.getTabbedPane().indexOfTab(from)).append(
-//				"[" + from + "]" + " : " + message + "\n");
+		handlers.get(tabbedPane.indexOfTab(from)).append("[" + from + "]" + " : " + message + "\n");
 	}
 	
 	public void clearHandlers()
@@ -178,21 +211,4 @@ public class ChatClient extends JFrame
 	{
 		return handlers;
 	}
-//	private static void addPopup(Component component, final JPopupMenu popup) {
-//		component.addMouseListener(new MouseAdapter() {
-//			public void mousePressed(MouseEvent e) {
-//				if (e.isPopupTrigger()) {
-//					showMenu(e);
-//				}
-//			}
-//			public void mouseReleased(MouseEvent e) {
-//				if (e.isPopupTrigger()) {
-//					showMenu(e);
-//				}
-//			}
-//			private void showMenu(MouseEvent e) {
-//				popup.show(e.getComponent(), e.getX(), e.getY());
-//			}
-//		});
-//	}
 }

@@ -103,14 +103,13 @@ public class ServerThread extends Thread
 		clientsMap.put(clientName, oOutputStream);
 	}
 
-	private void startListRefreshingDemon()
-	{
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				while (clientConnected)
+	class RefreshDaemon implements Runnable {
+		   private Thread t;
+		   private boolean run = true;
+		  
+		   public void run() {
+	
+				while (clientConnected && run)
 				{
 						try
 						{
@@ -130,8 +129,26 @@ public class ServerThread extends Thread
 							sysOut("Sending users demon interrupted.");
 						}
 				}
-			}
-		}).start();
+		   }
+		   
+		   public void start () {
+		      if (t == null) {
+		         t = new Thread(this);
+		         t.start ();
+		      }
+		   }
+		   public void interrupt () {
+
+			   run = false;
+		}
+	}
+	
+	RefreshDaemon refreshDaemon;
+	
+	private void startListRefreshingDemon()
+	{
+		refreshDaemon = new RefreshDaemon();
+		refreshDaemon.start();
 	}
 
 	private void sendAllClients() throws IOException

@@ -13,10 +13,6 @@ import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-/**
- * @author 2016 GRZEGORZ PRZYTU£A ALL RIGHTS RESERVED 
- * - Networking thread for chat room client 
- */
 public class ClientThread extends Thread
 {
 	/** Handlers */
@@ -28,6 +24,8 @@ public class ClientThread extends Thread
 	private InetAddress serverAdress;
 	private ObjectOutputStream oOutputStream;
 	private ObjectInputStream oInputStream;
+	
+	private int offset;
 	
 	public ClientThread(String clientName, InetAddress serverAdress)
 	{
@@ -53,11 +51,13 @@ public class ClientThread extends Thread
 			{
 				JOptionPane.showMessageDialog(clientApp, "Connection Failed", "ERROR",
 						JOptionPane.ERROR_MESSAGE);
+				break;
 			}
 			catch (IOException ex)
 			{
 				JOptionPane.showMessageDialog(clientApp, "Connection Failed", "ERROR",
 						JOptionPane.ERROR_MESSAGE);
+				break;
 			}
 		}
 	}
@@ -115,13 +115,30 @@ public class ClientThread extends Thread
 	public void sendMessageToServer(String clientName, String message){
 		try
 		{
-			oOutputStream.writeObject(this.clientName + "~" + clientName + "~" + message);
+			System.out.println(clientName);
+			if(!clientName.contains("+"))
+				oOutputStream.writeObject(this.clientName + "~" + clientName + "~" + message);
+			else
+			{
+				String[] names = clientName.split("+");
+				oOutputStream.writeObject(this.clientName + "~" + names[0] + "~" + message);
+				oOutputStream.writeObject(this.clientName + "~" + names[1] + "~" + message);
+			}
+				
 		}
 		catch (IOException e)
 		{
 			JOptionPane.showMessageDialog(clientApp, "Sending Failed", "ERROR",
 					JOptionPane.ERROR_MESSAGE);
 		}
+	}
+	
+	public void addToChatroom(String clientName1, String clientName2)
+	{
+		offset = 1;
+		JPanel panel = clientApp.getChatPanelForTab();
+		//clientApp.getListModel().addElement(clientName1 + "+" + clientName2);
+		clientApp.getTabbedPane().addTab(clientName1 + "+" + clientName2, panel);
 	}
 	
 	private String getMessageFromServer() throws IOException
@@ -155,12 +172,12 @@ public class ClientThread extends Thread
 		List<String> splitted = Arrays.asList(message.split("[<>]+"));
 		splitted = splitted.subList(2, splitted.size());
 		splitted = splitted.stream().filter(i -> !i.equals(clientApp.getClientName())).collect(Collectors.toList());
-		if(splitted.size() != clientApp.getListModel().size())
+		if(splitted.size() != clientApp.getListModel().size() - offset)
 		{
 			clientApp.clearHandlers();
 			clientApp.getListModel().removeAllElements();
 			clientApp.getTabbedPane().removeAll();
-			for(int i =0 ; i< splitted.size();i++)
+			for(int i = 0; i < splitted.size(); i++)
 			{
 					JPanel panel = clientApp.getChatPanelForTab();
 					clientApp.getListModel().addElement(splitted.get(i));
