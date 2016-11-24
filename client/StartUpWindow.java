@@ -36,21 +36,23 @@ public class StartUpWindow extends JFrame
 	 */
 	public static void main(String[] args)
 	{
-		EventQueue.invokeLater(new Runnable()
-		{
-			public void run()
-			{
-				try
-				{
-					StartUpWindow frame = new StartUpWindow();
-					frame.setVisible(true);
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-			}
-		});
+		AES aes = new AES();
+		aes.encrypt("", null);
+//		EventQueue.invokeLater(new Runnable()
+//		{
+//			public void run()
+//			{
+//				try
+//				{
+//					StartUpWindow frame = new StartUpWindow();
+//					frame.setVisible(true);
+//				}
+//				catch (Exception e)
+//				{
+//					e.printStackTrace();
+//				}
+//			}
+//		});
 	}
 
 	/**
@@ -177,7 +179,7 @@ public class StartUpWindow extends JFrame
 		
 		try
 		{
-			new Thread(new ClientThread(clientIdTextField.getText(),InetAddress.getByName(serverIpTextField.getText()))).start();
+			new ClientThread(clientIdTextField.getText(),InetAddress.getByName(serverIpTextField.getText()));
 		}
 		catch (UnknownHostException e)
 		{

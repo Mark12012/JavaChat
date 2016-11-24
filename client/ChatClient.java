@@ -167,7 +167,7 @@ public class ChatClient extends JFrame
 			public void actionPerformed(ActionEvent arg0) {
 				String ms = outputTextField.getText();
 				AES aes = new AES();
-				client.sendMessageToServer(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()), aes.encrypt(ms));
+				client.sendMessageToServer(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()), aes.encrypt(ms, null));
 				chatArea.append("[" + clientName + "]" +" : " 
 						+ ms + "\n" );
 				outputTextField.setText("");
