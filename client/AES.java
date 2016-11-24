@@ -89,8 +89,9 @@ public class AES {
 				test5[3] = (byte) 0x45;
 
 			    byte[][] a = new byte[4][4];
-			    for(int b = 0; b < test5.length; b++)
-			    	a[b] = test5;	
+			    for(int b = 0; b < a.length; b++)
+			    	for(int d = 0; d < a.length; d++)
+			    	a[b][d] = test5[b];	
 
 
 			    
@@ -108,11 +109,6 @@ public class AES {
 			    	}
 			    }
 			    System.out.println(sb.toString());
-//			    for (int b : a) {
-//			        sb.append(String.format("%02X ", b));
-//			    }
-//			    System.out.println(sb.toString());
-
 			    byte[][] test4 = mixColumns(a);
 			    i = 1;
 			    System.out.println("test:");
@@ -281,16 +277,20 @@ public class AES {
 	
 	private static byte[][] mixColumns(byte[][] state){
 		 int[] sp = new int[4];
-	      byte b02 = (byte)0x02, b03 = (byte)0x03;
+		 byte[][] out = new byte[4][4];
+	     byte b02 = (byte)0x02, b03 = (byte)0x03;
 	      for (int c = 0; c < 4; c++) {
-	         sp[0] = FFMul(b02, state[0][c]) ^ FFMul(b03, state[1][c]) ^ state[2][c]  ^ state[3][c];
-	         sp[1] = state[0][c]  ^ FFMul(b02, state[1][c]) ^ FFMul(b03, state[2][c]) ^ state[3][c];
-	         sp[2] = state[0][c]  ^ state[1][c]  ^ FFMul(b02, state[2][c]) ^ FFMul(b03, state[3][c]);
-	         sp[3] = FFMul(b03, state[0][c]) ^ state[1][c]  ^ state[2][c]  ^ FFMul(b02, state[3][c]);
-	         for (int i = 0; i < 4; i++) state[i][c] = (byte)(sp[i]);
+	         sp[0] = FFMul(b02, state[0][c]) ^ FFMul(b03, state[1][c]) ^ state[2][c] ^ state[3][c];
+	         sp[1] = state[0][c] ^ FFMul(b02, state[1][c]) ^ FFMul(b03, state[2][c]) ^ state[3][c];
+	         sp[2] = state[0][c] ^ state[1][c] ^ FFMul(b02, state[2][c]) ^ FFMul(b03, state[3][c]);
+	         sp[3] = FFMul(b03, state[0][c]) ^ state[1][c] ^ state[2][c] ^ FFMul(b02, state[3][c]);
+	         for (int i = 0; i < 4; i++)
+	        	 System.out.println(Integer.toHexString(sp[i]));
+	         for (int i = 0; i < 4; i++) 
+	        	 out[i][c] = (byte)(sp[i]);
 	      }
 	      
-	      return state;
+	      return out;
 	}
 
 	public static byte FFMul(byte a, byte b) {
