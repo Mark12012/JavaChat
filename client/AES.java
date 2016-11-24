@@ -109,7 +109,13 @@ public class AES {
 
 		return message;
 	}
-	
+	/**
+	 * Methods for generating matrix of round keys
+	 * 
+	 * State - message during encryption
+	 * roundKey - Round Key
+	 * round - Round
+	 * */
 	private static byte[][][] rijndaelKeySchedule(byte[] key) {
 
 		int numberOfColumns = 4;
@@ -194,7 +200,9 @@ public class AES {
 		return in;
 }
 	/**
-	 *  State - message during encryption
+	 * Methods for encryption
+	 * 
+	 * State - message during encryption
 	 * roundKey - Round Key
 	 * round - Round
 	 * */
@@ -210,5 +218,21 @@ public class AES {
 		}
 		
 		return out;
+	}
+	
+	private static byte[][] byteSub(byte[][] state, byte[][] roundKey, int round)
+	{
+		return roundKey;
+		
+	}
+	private static byte[][] shiftRow(byte[][] state, byte[][] roundKey, int round)
+	{
+		return roundKey;
+		
+	}
+	private static byte[][] mixColumns(byte[][] state, byte[][] roundKey, int round)
+	{
+		return roundKey;
+		
 	}
 }
