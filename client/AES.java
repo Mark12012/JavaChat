@@ -78,37 +78,71 @@ public class AES {
 		System.out.println(Nr);
 		
 
-		
-		byte[] test = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	    
-				for(int l = 0; l < test.length; l++)
-					System.out.print(Integer.toHexString(test[l]) + " ");
-		byte[][][] test1 = rijndaelKeySchedule(test);
+
 				
 				StringBuilder sb = new StringBuilder();
-			    for (byte b : test) {
-			        sb.append(String.format("%02X ", b));
-			    }
-			    System.out.println(sb.toString());
-			    sb = new StringBuilder();
-			    System.out.println(System.lineSeparator());
+			   
+			    byte[] test5 = new byte[4];//{ 0xdb, 0x13, 0x53, 0x45};
+			    test5[0] = (byte) 0xDB;
+			    test5[1] = (byte) 0x13;
+			    test5[2] = (byte) 0x53;
+				test5[3] = (byte) 0x45;
+
+			    byte[][] a = new byte[4][4];
+			    for(int b = 0; b < test5.length; b++)
+			    	a[b] = test5;	
+
+
+			    
 			    int i = 1;
-			    for (int c = 0; c < Nr + 1; c++){
-			    for (int a = 0; a < 4; a++) {
-			    	for (int b = 0; b < 4; b++) {
-			    	sb.append(String.format("%02X ", test1[c][a][b]));
-			        if(i == 16){
+			    System.out.println("a:");
+			    sb = new StringBuilder();
+			    for (int a1 = 0; a1 < a.length; a1++) {
+			    	for (int b = 0; b < a[0].length; b++) {
+			    	sb.append(String.format("%02X ", a[a1][b]));
+			        if(i == 4){
 			        	i = 0;
 			        	sb.append(System.lineSeparator());
 			        }
 			        i++;
 			    	}
 			    }
+			    System.out.println(sb.toString());
+//			    for (int b : a) {
+//			        sb.append(String.format("%02X ", b));
+//			    }
+//			    System.out.println(sb.toString());
+
+			    byte[][] test4 = mixColumns(a);
+			    i = 1;
+			    System.out.println("test:");
+				sb = new StringBuilder();
+			    for (int a1 = 0; a1 < a.length; a1++) {
+			    	for (int b = 0; b < a[0].length; b++) {
+			    	sb.append(String.format("%02X ", test4[a1][b]));
+			        if(i == 4){
+			        	i = 0;
+			        	sb.append(System.lineSeparator());
+			        }
+			        i++;
+			    	}
 			    }
 			    System.out.println(sb.toString());
-
+			    //Assert.assertEquals(expectedFirstNames, firstNames);
 		return message;
 	}
+	
+	/**
+	 * Encrypting block of 128, 192 or 256 bits
+	 * with key that have the same possible lengths
+	 * */
+	
+	private static byte[] encryptBlock(byte[] input, byte[] key)
+	{
+		
+		return null;
+	}
+	
 	/**
 	 * Methods for generating matrix of round keys
 	 * 
@@ -206,7 +240,7 @@ public class AES {
 	 * roundKey - Round Key
 	 * round - Round
 	 * */
-	private static byte[][] addRoundKey(byte[][] state, byte[][] roundKey, int round)
+	private static byte[][] addRoundKey(byte[][] state, byte[][] roundKey)
 	{
 		byte[][] out = new byte[1][1];
 		for(int i = 0; i < Nb; i++)
@@ -220,19 +254,56 @@ public class AES {
 		return out;
 	}
 	
-	private static byte[][] byteSub(byte[][] state, byte[][] roundKey, int round)
+	private static byte[][] byteSub(byte[][] state)
 	{
-		return roundKey;
+		byte[][] out = new byte[state.length][state[0].length];
+		
+		for (int row = 0; row < 4; row++)
+			for (int col = 0; col < Nb; col++)
+				out[row][col] = (byte) (RijndaelSBox[(state[row][col] & 0x000000ff)] & 0xff);
+
+		return out;
 		
 	}
-	private static byte[][] shiftRow(byte[][] state, byte[][] roundKey, int round)
+	private static byte[][] shiftRow(byte[][] state)
 	{
-		return roundKey;
+		byte[] t = new byte[4];
+		for (int r = 1; r < 4; r++) {
+			for (int c = 0; c < Nb; c++)
+				t[c] = state[r][(c + r) % Nb];
+			for (int c = 0; c < Nb; c++)
+				state[r][c] = t[c];
+		}
+
+		return state;
 		
 	}
-	private static byte[][] mixColumns(byte[][] state, byte[][] roundKey, int round)
-	{
-		return roundKey;
-		
+	
+	private static byte[][] mixColumns(byte[][] state){
+		 int[] sp = new int[4];
+	      byte b02 = (byte)0x02, b03 = (byte)0x03;
+	      for (int c = 0; c < 4; c++) {
+	         sp[0] = FFMul(b02, state[0][c]) ^ FFMul(b03, state[1][c]) ^ state[2][c]  ^ state[3][c];
+	         sp[1] = state[0][c]  ^ FFMul(b02, state[1][c]) ^ FFMul(b03, state[2][c]) ^ state[3][c];
+	         sp[2] = state[0][c]  ^ state[1][c]  ^ FFMul(b02, state[2][c]) ^ FFMul(b03, state[3][c]);
+	         sp[3] = FFMul(b03, state[0][c]) ^ state[1][c]  ^ state[2][c]  ^ FFMul(b02, state[3][c]);
+	         for (int i = 0; i < 4; i++) state[i][c] = (byte)(sp[i]);
+	      }
+	      
+	      return state;
+	}
+
+	public static byte FFMul(byte a, byte b) {
+		byte aa = a, bb = b, r = 0, t;
+		while (aa != 0) {
+			if ((aa & 1) != 0)
+				r = (byte) (r ^ bb);
+			t = (byte) (bb & 0x80);
+			bb = (byte) (bb << 1);
+			if (t != 0)
+				bb = (byte) (bb ^ 0x1b);
+			aa = (byte) ((aa & 0xff) >> 1);
+		}
+		return r;
 	}
 }
