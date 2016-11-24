@@ -58,72 +58,70 @@ public class AES {
 	
 	public String encrypt(String message, byte[] key)
 	{
-		/**
-		 * Zero round(State,RoundKey)
-		 * 	addRoundKey(State,RoundKey)
-		 * Round(State,RoundKey)
-		 * 	byteSub(State)
-		 * 	shiftRow(State)
-		 * 	mixColumns(State)
-		 * 	AddRoundKey(State)
-		 * FinalRound(State,RoundKey)
-		 * 	byteSub(State)
-		 * 	shiftRow(State)
-		 * 	AddRoundKey(State)
-		 * 
-		 * Output - State*/
+
 		Nb = 4;
 		Nk = 4;
 		Nr = NumberOfRounds[Nk/2 - 2][Nb/2 - 2];
-		System.out.println(Nr);
 		
-
-
-				
-				StringBuilder sb = new StringBuilder();
-			   
-			    byte[] test5 = new byte[4];//{ 0xdb, 0x13, 0x53, 0x45};
-			    test5[0] = (byte) 0xDB;
-			    test5[1] = (byte) 0x13;
-			    test5[2] = (byte) 0x53;
-				test5[3] = (byte) 0x45;
-
-			    byte[][] a = new byte[4][4];
-			    for(int b = 0; b < a.length; b++)
-			    	for(int d = 0; d < a.length; d++)
-			    	a[b][d] = test5[b];	
-
-
-			    
-			    int i = 1;
-			    System.out.println("a:");
-			    sb = new StringBuilder();
-			    for (int a1 = 0; a1 < a.length; a1++) {
-			    	for (int b = 0; b < a[0].length; b++) {
-			    	sb.append(String.format("%02X ", a[a1][b]));
-			        if(i == 4){
-			        	i = 0;
-			        	sb.append(System.lineSeparator());
-			        }
-			        i++;
-			    	}
-			    }
-			    System.out.println(sb.toString());
-			    byte[][] test4 = mixColumns(a);
-			    i = 1;
-			    System.out.println("test:");
-				sb = new StringBuilder();
-			    for (int a1 = 0; a1 < a.length; a1++) {
-			    	for (int b = 0; b < a[0].length; b++) {
-			    	sb.append(String.format("%02X ", test4[a1][b]));
-			        if(i == 4){
-			        	i = 0;
-			        	sb.append(System.lineSeparator());
-			        }
-			        i++;
-			    	}
-			    }
-			    System.out.println(sb.toString());
+		
+		byte[] ms = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//new byte[16];
+		byte[] k = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//new byte[16];
+		
+		byte[] enc = encryptBlock(ms, k);
+		StringBuilder sb = new StringBuilder();
+		for (byte b : enc) {
+	    	sb.append(String.format("%02X ", b));
+	    }
+	    System.out.println(sb.toString());
+//		System.out.println(Nr);
+//		
+//
+//
+//				
+//				StringBuilder sb = new StringBuilder();
+//			   
+//			    byte[] test5 = new byte[4];//{ 0xdb, 0x13, 0x53, 0x45};
+//			    test5[0] = (byte) 0xDB;
+//			    test5[1] = (byte) 0x13;
+//			    test5[2] = (byte) 0x53;
+//				test5[3] = (byte) 0x45;
+//
+//			    byte[][] a = new byte[4][4];
+//			    for(int b = 0; b < a.length; b++)
+//			    	for(int d = 0; d < a.length; d++)
+//			    	a[b][d] = test5[b];	
+//
+//
+//			    
+//			    int i = 1;
+//			    System.out.println("a:");
+//			    sb = new StringBuilder();
+//			    for (int a1 = 0; a1 < a.length; a1++) {
+//			    	for (int b = 0; b < a[0].length; b++) {
+//			    	sb.append(String.format("%02X ", a[a1][b]));
+//			        if(i == 4){
+//			        	i = 0;
+//			        	sb.append(System.lineSeparator());
+//			        }
+//			        i++;
+//			    	}
+//			    }
+//			    System.out.println(sb.toString());
+//			    byte[][] test4 = mixColumns(a);
+//			    i = 1;
+//			    System.out.println("test:");
+//				sb = new StringBuilder();
+//			    for (int a1 = 0; a1 < a.length; a1++) {
+//			    	for (int b = 0; b < a[0].length; b++) {
+//			    	sb.append(String.format("%02X ", test4[a1][b]));
+//			        if(i == 4){
+//			        	i = 0;
+//			        	sb.append(System.lineSeparator());
+//			        }
+//			        i++;
+//			    	}
+//			    }
+//			    System.out.println(sb.toString());
 			    //Assert.assertEquals(expectedFirstNames, firstNames);
 		return message;
 	}
@@ -132,11 +130,90 @@ public class AES {
 	 * Encrypting block of 128, 192 or 256 bits
 	 * with key that have the same possible lengths
 	 * */
-	
-	private static byte[] encryptBlock(byte[] input, byte[] key)
-	{
+	/**
+	 * How it works:
+	 * Zero round(State,RoundKey)
+	 * 	addRoundKey(State,RoundKey)
+	 * Round(State,RoundKey)
+	 * 	byteSub(State)
+	 * 	shiftRow(State)
+	 * 	mixColumns(State)
+	 * 	AddRoundKey(State)
+	 * FinalRound(State,RoundKey)
+	 * 	byteSub(State)
+	 * 	shiftRow(State)
+	 * 	AddRoundKey(State)
+	 * 
+	 * Output - State*/
+	private static byte[] encryptBlock(byte[] input, byte[] key) {
 		
-		return null;
+		byte[] tmp = new byte[input.length];
+		byte[][] state = new byte[4][Nb];
+		byte[][][] rounKey = rijndaelKeySchedule(key);
+		
+		int newline = 1;
+		for(int a = 0; a < rounKey.length; a++){
+			for(int b = 0; b < rounKey[0].length; b++)
+				for(int c = 0; c < rounKey[0][0].length; c++)
+			{
+				System.out.print(String.format("%02X ", rounKey[a][b][c]));
+				if(newline == 16){
+					System.out.println("");
+					newline = 0;
+				
+				}
+				++newline;
+			}
+		}
+		
+		
+		
+		for (int i = 0; i < input.length; i++)
+			state[i / 4][i % 4] = input[i % 4 * 4 + i / 4];
+
+		state = addRoundKey(state, rounKey[0]);
+		
+		
+		for (int round = 1; round < Nr; round++) {
+			state = byteSub(state);
+			state = shiftRow(state);
+
+			state = mixColumns(state);
+			for(int a = 0; a < state.length; a++){
+				for(int b = 0; b < state[0].length; b++)
+				{
+					System.out.print(String.format("%02X ", state[a][b]));
+				}
+				if(newline == 4){
+					System.out.println("");
+					newline = 0;
+				}
+				++newline;
+			}
+			state = addRoundKey(state, rounKey[round]);
+			for(int a = 0; a < state.length; a++){
+				for(int b = 0; b < state[0].length; b++)
+				{
+					System.out.print(String.format("%02X ", state[a][b]));
+				}
+				if(newline == 4){
+					System.out.println("");
+					newline = 0;
+				}
+				++newline;
+			}
+
+			
+		}
+		
+		state = byteSub(state);
+		state = shiftRow(state);
+		state = addRoundKey(state, rounKey[Nr]);
+
+		for (int i = 0; i < tmp.length; i++)
+			tmp[i % 4 * 4 + i / 4] = state[i / 4][i % 4];
+
+		return tmp;
 	}
 	
 	/**
@@ -238,13 +315,18 @@ public class AES {
 	 * */
 	private static byte[][] addRoundKey(byte[][] state, byte[][] roundKey)
 	{
-		byte[][] out = new byte[1][1];
+		byte[][] out = new byte[state.length][state[0].length];
+		//System.out.println(state.length + " x " + state[0].length);
+		//System.out.println(roundKey.length + " x " + roundKey[0].length);
 		for(int i = 0; i < Nb; i++)
 		{
 			for(int j = 0; j < 4; j++)
 			{
-				out[j][i] = (byte) (roundKey[j][i] ^ state[j][i]);
+				
+				out[j][i] = (byte) (roundKey[i][j] ^ state[j][i]);
+				System.out.print(state[j][i] + " ");
 			}
+			System.out.println("");
 		}
 		
 		return out;
@@ -280,12 +362,10 @@ public class AES {
 		 byte[][] out = new byte[4][4];
 	     byte b02 = (byte)0x02, b03 = (byte)0x03;
 	      for (int c = 0; c < 4; c++) {
-	         sp[0] = FFMul(b02, state[0][c]) ^ FFMul(b03, state[1][c]) ^ state[2][c] ^ state[3][c];
-	         sp[1] = state[0][c] ^ FFMul(b02, state[1][c]) ^ FFMul(b03, state[2][c]) ^ state[3][c];
-	         sp[2] = state[0][c] ^ state[1][c] ^ FFMul(b02, state[2][c]) ^ FFMul(b03, state[3][c]);
-	         sp[3] = FFMul(b03, state[0][c]) ^ state[1][c] ^ state[2][c] ^ FFMul(b02, state[3][c]);
-	         for (int i = 0; i < 4; i++)
-	        	 System.out.println(Integer.toHexString(sp[i]));
+	         sp[0] = gMul(b02, state[0][c]) ^ gMul(b03, state[1][c]) ^ state[2][c] ^ state[3][c];
+	         sp[1] = state[0][c] ^ gMul(b02, state[1][c]) ^ gMul(b03, state[2][c]) ^ state[3][c];
+	         sp[2] = state[0][c] ^ state[1][c] ^ gMul(b02, state[2][c]) ^ gMul(b03, state[3][c]);
+	         sp[3] = gMul(b03, state[0][c]) ^ state[1][c] ^ state[2][c] ^ gMul(b02, state[3][c]);
 	         for (int i = 0; i < 4; i++) 
 	        	 out[i][c] = (byte)(sp[i]);
 	      }
@@ -293,7 +373,8 @@ public class AES {
 	      return out;
 	}
 
-	public static byte FFMul(byte a, byte b) {
+	// Galois Field (256) Multiplication of two Bytes
+	public static byte gMul(byte a, byte b) {
 		byte aa = a, bb = b, r = 0, t;
 		while (aa != 0) {
 			if ((aa & 1) != 0)
