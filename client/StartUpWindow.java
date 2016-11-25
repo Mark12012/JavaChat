@@ -37,7 +37,7 @@ public class StartUpWindow extends JFrame
 	public static void main(String[] args)
 	{
 		AES aes = new AES();
-		aes.encrypt("", null);
+		System.out.println(aes.encrypt("Test", new byte[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 //		EventQueue.invokeLater(new Runnable()
 //		{
 //			public void run()
