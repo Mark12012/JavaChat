@@ -37,7 +37,22 @@ public class StartUpWindow extends JFrame
 	public static void main(String[] args)
 	{
 		AES aes = new AES();
-		System.out.println(aes.encrypt("Test", new byte[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+//		aes.test("Test", new byte[] {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1});
+//		aes.test("Test", new byte[] {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1});
+//		aes.test("Test", new byte[] {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1});
+		byte[] ms = aes.encrypt("Test Test", new byte[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+		String ma = aes.decrypt(ms, new byte[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+		System.out.println("Message: " + ma);
+		StringBuilder sb = new StringBuilder();
+		for (byte b : ms) {
+	    	sb.append(String.format("%02X ", b));
+	    }
+	    System.out.println("Ecr: " + sb.toString());
+	    sb = new StringBuilder();
+		for (byte b : ma.getBytes()) {
+	    	sb.append(String.format("%02X ", b));
+	    }
+	    System.out.println("Dec: " + sb.toString());
 //		EventQueue.invokeLater(new Runnable()
 //		{
 //			public void run()
