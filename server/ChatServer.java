@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.SystemColor;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -27,7 +26,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.DefaultCaret;
 
 /**
- * @author 2016 GRZEGORZ PRZYTU£A ALL RIGHTS RESERVED 
+ * @author 2016 GRZEGORZ PRZYTU≈ÅA ALL RIGHTS RESERVED 
  * - Swing application for chat room server
  */
 @SuppressWarnings("serial")
@@ -66,14 +65,14 @@ public class ChatServer extends JFrame
 		setBounds(100, 100, 645, 343);
 		
 		JPanel contentPane = new JPanel();
-		contentPane.setBackground(Color.WHITE);
+		contentPane.setBackground(Color.LIGHT_GRAY);
 		contentPane.setLayout(new BorderLayout());
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 
 		logTextArea = new JTextArea();
-		logTextArea.setBackground(SystemColor.inactiveCaptionBorder);
-		logTextArea.setEnabled(false);
+		logTextArea.setForeground(Color.DARK_GRAY);
+		logTextArea.setBackground(Color.LIGHT_GRAY);
 		logTextArea.setEditable(false);
 		logTextArea.setLineWrap(true);
 		((DefaultCaret)logTextArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -85,7 +84,8 @@ public class ChatServer extends JFrame
 
 		listModel = new DefaultListModel<>();
 		JList<String> listOfUsers = new JList<>(listModel);
-		listOfUsers.setBackground(SystemColor.inactiveCaptionBorder);
+		listOfUsers.setForeground(Color.DARK_GRAY);
+		listOfUsers.setBackground(Color.LIGHT_GRAY);
 		listOfUsers.setBounds(422, 10, 197, 283);
 		
 		JScrollPane listScrollPane = new JScrollPane(listOfUsers);
@@ -99,7 +99,7 @@ public class ChatServer extends JFrame
 	{
 		sysOut("---> Server start");
 		Map<String,ObjectOutputStream> clientsMap = new HashMap<>();
-		
+		boolean errorOcured = false;
 		try
 		{
 			server = new ServerSocket(6664, 20);
@@ -107,29 +107,31 @@ public class ChatServer extends JFrame
 		catch (IOException ex)
 		{
 			sysOut(ex.getMessage() + "---> Server gone down, creating sever socket failed");
+			errorOcured = true;
 		}
 
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
+		if(!errorOcured)
+			new Thread(new Runnable()
 			{
-				while (true)
+				@Override
+				public void run()
 				{
-					Socket connection = null;
-					try
+					while (true)
 					{
-						connection = server.accept();
+						Socket connection = null;
+						try
+						{
+							connection = server.accept();
+						}
+						catch (IOException ex)
+						{
+							sysOut(ex.getMessage() + "---> Accepting clients failed");
+						}
+						sysOut("---> New Connection with: " + connection);
+						new Thread(new ServerThread(connection,logTextArea,listModel,clientsMap )).start();
 					}
-					catch (IOException ex)
-					{
-						sysOut(ex.getMessage() + "---> Accepting clients failed");
-					}
-					sysOut("---> New Connection with: " + connection);
-					new Thread(new ServerThread(connection,logTextArea,listModel,clientsMap )).start();
 				}
-			}
-		}).start();
+			}).start();
 	}
 
 	private void sysOut(String msg)

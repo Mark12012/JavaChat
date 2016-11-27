@@ -1,4 +1,4 @@
-package client;
+package client.clientApp;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -21,7 +21,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-
+/**
+ * @author 2016 GRZEGORZ PRZYTU�A ALL RIGHTS RESERVED 
+ * - StartUp application for chat room client
+ */
 @SuppressWarnings("serial")
 public class StartUpWindow extends JFrame
 {
@@ -36,38 +39,21 @@ public class StartUpWindow extends JFrame
 	 */
 	public static void main(String[] args)
 	{
-		AES aes = new AES();
-//		aes.test("Test", new byte[] {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1});
-//		aes.test("Test", new byte[] {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1});
-//		aes.test("Test", new byte[] {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1});
-		byte[] ms = aes.encrypt("Test Test", new byte[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-		String ma = aes.decrypt(ms, new byte[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-		System.out.println("Message: " + ma);
-		StringBuilder sb = new StringBuilder();
-		for (byte b : ms) {
-	    	sb.append(String.format("%02X ", b));
-	    }
-	    System.out.println("Ecr: " + sb.toString());
-	    sb = new StringBuilder();
-		for (byte b : ma.getBytes()) {
-	    	sb.append(String.format("%02X ", b));
-	    }
-	    System.out.println("Dec: " + sb.toString());
-//		EventQueue.invokeLater(new Runnable()
-//		{
-//			public void run()
-//			{
-//				try
-//				{
-//					StartUpWindow frame = new StartUpWindow();
-//					frame.setVisible(true);
-//				}
-//				catch (Exception e)
-//				{
-//					e.printStackTrace();
-//				}
-//			}
-//		});
+		EventQueue.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				try
+				{
+					StartUpWindow frame = new StartUpWindow();
+					frame.setVisible(true);
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	/**
@@ -163,20 +149,20 @@ public class StartUpWindow extends JFrame
 	protected void getServerIP() throws IOException
 	{
 		File file = new File("connection.properties");
-		Properties prop = new Properties();
 		if (!file.exists())
 		{
 			file.createNewFile();
-			prop.setProperty("serverIp", "127.0.0.1");
-			prop.setProperty("clientIdentifier", "DEFAULT");
+			String defaultData = "#SERVER IP ADRESS\n" + "serverIp=127.0.0.1\n" +
+						"#CLIENT ID THAT WILL BE SHOWN TO SERVER\n" +
+						"clientIdentifier=DEFAULT";
 			FileWriter fileWritter = new FileWriter(file.getName(), true);
 			BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-			prop.store(bufferWritter, "SERVER IP ADRESS AND " + "CLIENT ID THAT WILL BE SHOWN TO SERVER");
+			bufferWritter.write(defaultData);
 			bufferWritter.close();
 		}
 		try (FileReader reader = new FileReader("connection.properties"))
 		{
-			
+			Properties prop = new Properties();
 			prop.load(reader);
 			serverIpTextField.setText(prop.getProperty("serverIp"));
 			clientIdTextField.setText(prop.getProperty("clientIdentifier"));
@@ -194,7 +180,7 @@ public class StartUpWindow extends JFrame
 		
 		try
 		{
-			new ClientThread(clientIdTextField.getText(),InetAddress.getByName(serverIpTextField.getText()));
+			new ClientThread(clientIdTextField.getText(),InetAddress.getByName(serverIpTextField.getText())).start();;
 		}
 		catch (UnknownHostException e)
 		{

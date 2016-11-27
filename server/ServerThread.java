@@ -16,19 +16,26 @@ import javax.swing.DefaultListModel;
 import javax.swing.JTextArea;
 
 /**
- * @author 2016 GRZEGORZ PRZYTU£A ALL RIGHTS RESERVED 
+ * @author 2016 GRZEGORZ PRZYTU≈ÅA ALL RIGHTS RESERVED 
  * - Networking thread for chat room server 
  */
 public class ServerThread extends Thread
 {
+	/** Networking */
 	private Socket connection;
 	private ObjectInputStream oInputStream;
 	private ObjectOutputStream oOutputStream;
-	private JTextArea logTextArea;
-	private Map<String,ObjectOutputStream> clientsMap;
-	private DefaultListModel<String> listModel;
+	
 	private String clientName;
 	private boolean clientConnected;
+	
+	/** Swing */
+	private JTextArea logTextArea;
+	
+	/** Handlers */
+	private Map<String,ObjectOutputStream> clientsMap;
+	private DefaultListModel<String> listModel;
+	
 
 	public ServerThread(Socket connection,JTextArea logTextArea,DefaultListModel<String> listModel,
 			Map<String,ObjectOutputStream> clientsMap)
@@ -49,11 +56,11 @@ public class ServerThread extends Thread
 		}
 		catch (IOException e)
 		{
-			sysOut("Starting new connection (streams and getting nickname) failed.");
+			addToLog("Starting new connection (streams and getting nickname) failed.");
 		}
 
 		/** Demon which sending regularly connected clients list */
-		startListRefreshingDemon();
+		startUsersListRefreshingDemon();
 		
 		while (clientConnected)
 		{
@@ -62,18 +69,18 @@ public class ServerThread extends Thread
 			{
 				receivedMessage = getMessageFromClient();
 				if (receivedMessage != null)
-					generateResponse(receivedMessage);
+					passResponseToOtherClient(receivedMessage);
 			}
 			catch (EOFException ex)
 			{
-				sysOut(ex.getMessage() + "---> Client " + clientName  + " disconnected." +
+				addToLog(ex.getMessage() + "---> Client " + clientName  + " disconnected." +
 						"(" + connection + ")");
 				listModel.removeElement(clientName);
 				clientConnected = false;
 			}
 			catch (IOException ex)
 			{
-				sysOut(ex.getMessage() + "---> Client " + clientName  + " disconnected." +
+				addToLog(ex.getMessage() + "---> Client " + clientName  + " disconnected." +
 						"(" + connection + ")");
 				listModel.removeElement(clientName);
 				clientConnected = false;
@@ -103,21 +110,23 @@ public class ServerThread extends Thread
 		clientsMap.put(clientName, oOutputStream);
 	}
 
-	class RefreshDaemon implements Runnable {
-		   private Thread t;
-		   private boolean run = true;
-		  
-		   public void run() {
-	
-				while (clientConnected && run)
+	private void startUsersListRefreshingDemon()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				while (clientConnected)
 				{
 						try
 						{
-							sendAllClients();
+							sendUsersList();
 						}
 						catch (IOException ex)
 						{
-							sysOut("Sending users list failed.");
+							addToLog("Refreshing Demon : Sending users list failed.");
+							clientConnected = false;
 						}
 						
 						try
@@ -126,32 +135,14 @@ public class ServerThread extends Thread
 						}
 						catch (InterruptedException e)
 						{
-							sysOut("Sending users demon interrupted.");
+							addToLog("Refreshing Demon : Sending users demon interrupted.");
 						}
 				}
-		   }
-		   
-		   public void start () {
-		      if (t == null) {
-		         t = new Thread(this);
-		         t.start ();
-		      }
-		   }
-		   public void interrupt () {
-
-			   run = false;
-		}
-	}
-	
-	RefreshDaemon refreshDaemon;
-	
-	private void startListRefreshingDemon()
-	{
-		refreshDaemon = new RefreshDaemon();
-		refreshDaemon.start();
+			}
+		}).start();
 	}
 
-	private void sendAllClients() throws IOException
+	private void sendUsersList() throws IOException
 	{
 		StringBuilder sb = new StringBuilder("<clients>");
 		for (int i = 0; i < listModel.size(); i++)
@@ -160,7 +151,7 @@ public class ServerThread extends Thread
 		sendMessage(sb.toString());
 	}
 
-	private void generateResponse(String receivedMessage) throws IOException
+	private void passResponseToOtherClient(String receivedMessage) throws IOException
 	{
 		if (receivedMessage.equals(clientName))
 			return;
@@ -197,7 +188,7 @@ public class ServerThread extends Thread
 		oOutputStream.flush();
 	}
 
-	private void sysOut(String msg)
+	private void addToLog(String msg)
 	{
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		Calendar cal = Calendar.getInstance();
