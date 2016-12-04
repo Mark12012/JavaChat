@@ -1,4 +1,4 @@
-package client.clientApp;
+package client.client;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -197,7 +197,11 @@ public class ClientThread extends Thread
 			}
 			return;
 		}
-		frameThread.showMessage(from, message);
+		AES aes = new AES();
+		
+		frameThread.showMessage(from, aes.decrypt(message.getBytes(), keyAgreement.get(from).getKeyBytes()));
+		System.out.println(aes.decrypt(message.getBytes(), keyAgreement.get(from).getKeyBytes()));
+		keyAgreement.get(from).getKeyLenght();
 	}
 
 	public void initializeCommunication(String userNameTo) {
@@ -227,7 +231,13 @@ public class ClientThread extends Thread
 		// TODO
 		try
 		{
-			oOutputStream.writeObject(clientName + "~" + userNameTo + "~" + msg);	
+			StringBuilder sb = new StringBuilder();
+			for(byte b : aes.encrypt(msg, keyAgreement.get(userNameTo).getKeyBytes()))
+			{
+				sb.append(b);
+			}
+			oOutputStream.writeObject(clientName + "~" + userNameTo + "~" + sb.toString());
+			System.out.println(clientName + "TESZTY~" + userNameTo + "~" + sb.toString());
 		}
 		catch (IOException e)
 		{

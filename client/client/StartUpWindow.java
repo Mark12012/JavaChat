@@ -1,4 +1,4 @@
-package client.clientApp;
+package client.client;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -21,6 +21,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import client.cipher.AES;
+
 /**
  * @author 2016 GRZEGORZ PRZYTU�A ALL RIGHTS RESERVED 
  * - StartUp application for chat room client
@@ -39,21 +41,24 @@ public class StartUpWindow extends JFrame
 	 */
 	public static void main(String[] args)
 	{
-		EventQueue.invokeLater(new Runnable()
-		{
-			public void run()
-			{
-				try
-				{
-					StartUpWindow frame = new StartUpWindow();
-					frame.setVisible(true);
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-			}
-		});
+		AES aes = new AES();
+		byte[] ms = aes.encrypt("Piasek ma piasek i pisek piskiem", new byte[] {102, 109, 90, 121, 65, 44, -94, 66, 1, -8, 58, 23, -57, -108, 62, 27});
+		System.out.println(aes.decrypt(ms, new byte[] {102, 109, 90, 121, 65, 44, -94, 66, 1, -8, 58, 23, -57, -108, 62, 27}));
+//		EventQueue.invokeLater(new Runnable()
+//		{
+//			public void run()
+//			{
+//				try
+//				{
+//					StartUpWindow frame = new StartUpWindow();
+//					frame.setVisible(true);
+//				}
+//				catch (Exception e)
+//				{
+//					e.printStackTrace();
+//				}
+//			}
+//		});
 	}
 
 	/**

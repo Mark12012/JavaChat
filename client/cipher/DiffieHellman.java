@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 public class DiffieHellman {
-	private final static int bitLength = 512;
+	private final static int bitLength = 128;
 	
 	
 	private BigInteger key;
@@ -48,6 +48,16 @@ public class DiffieHellman {
 	public BigInteger getKey()
 	{
 		return key;
+	}
+	
+	public byte[] getKeyBytes()
+	{
+		return key.toByteArray();
+	}
+
+	public int getKeyLenght()
+	{
+		return key.toByteArray().length;
 	}
 	
 	public String getP() {
